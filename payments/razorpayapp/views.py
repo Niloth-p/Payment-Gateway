@@ -34,12 +34,6 @@ def capture_payment(request):
     resp = razorpay_client.payment.capture(payment_id, amount)
     data = razorpay_client.payment.fetch(payment_id)
     card_data = razorpay_client.card.fetch(card_id=data['card_id'])
-    # untampered = verify_rzpsignature(data, payment_id, razorpay_client)
-    # if untampered:
-    #     output_string = store_to_db(data, card_data)
-    # else:
-    #     output_string = "Tampered payment" 
-    # return output_string
     verify_rzpsignature(data, payment_id, razorpay_client)
     output_string = store_to_db(data, card_data)
     return output_string
@@ -54,15 +48,6 @@ def verify_rzpsignature(data, payment_id, razorpay_client):
             'razorpay_signature' : generated_signature
     }
     verification = razorpay_client.utility.verify_payment_signature(dict_params)
-    #print(verification)
-
-    # if generated_signature == signature:
-    #     return True
-    # else:
-    #     print('TAMPERED HERE!!!')
-    #     print(generated_signature)
-    #     print(signature)
-    #     return False
     return True
 
 

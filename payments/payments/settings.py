@@ -117,15 +117,18 @@ STATIC_URL = '/static/'
 #     SECRET_KEY = "xxxx"
 #     HOST_URL = 'http://localhost:8000'
 
-PAYMENT_VARIANTS = {
-    'razorpay': ('django_payments_razorpay.RazorPayProvider', {
-        'public_key': 'rzp_test_1EpF60pesrZQRU',
-        'secret_key': '4udhRNkCqjQYIxuUza28t3N9',
-        'image': '../image.jpg',
-        'name': 'Nation with NaMo',
-        }
-        )} 
+# PAYMENT_VARIANTS = {
+#     'razorpay': ('django_payments_razorpay.RazorPayProvider', {
+#         'public_key': 'rzp_test_1EpF60pesrZQRU',
+#         'secret_key': '4udhRNkCqjQYIxuUza28t3N9',
+#         'image': '../image.jpg',
+#         'name': 'Nation with NaMo',
+#         }
+#         )} 
 
 AMOUNT = 10020
+PUBLIC_KEY = 'rzp_test_9C0tA32nmQxBfO'
+SECRET_KEY = 'yiEAgQ2SVO2wko3LIO3qkCal'
+ORDER_ID = 21
 
 # prefill = True  

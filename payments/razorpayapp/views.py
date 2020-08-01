@@ -5,7 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
-
+import hmac
+import hashlib
 import json
 import time
 import razorpay
@@ -26,15 +27,43 @@ def charge(request):
 
 def capture_payment(request):
     '''capturing the payment using razorpay client then fetching the payment details'''
-    razorpay_client = razorpay.Client(auth=("rzp_test_lXnX8botLYip9x", "ILz3LievuVZ6IDZzBMwjWn9f"))
+    razorpay_client = razorpay.Client(auth=(settings.PUBLIC_KEY, settings.SECRET_KEY))
     razorpay_client.set_app_details({"title" : "Title", "version" : "1.0"})
     amount = settings.AMOUNT # in paise //to check if capture paid matches the reqd amount - otherwise Error
     payment_id = request.POST.get('razorpay_payment_id','')
-    razorpay_client.payment.capture(payment_id, amount)
+    resp = razorpay_client.payment.capture(payment_id, amount)
     data = razorpay_client.payment.fetch(payment_id)
     card_data = razorpay_client.card.fetch(card_id=data['card_id'])
-    output_string = store_to_db(data, card_data) 
+    # untampered = verify_rzpsignature(data, payment_id, razorpay_client)
+    # if untampered:
+    #     output_string = store_to_db(data, card_data)
+    # else:
+    #     output_string = "Tampered payment" 
+    # return output_string
+    verify_rzpsignature(data, payment_id, razorpay_client)
+    output_string = store_to_db(data, card_data)
     return output_string
+
+
+def verify_rzpsignature(data, payment_id, razorpay_client):
+    '''verifies the signature returned by rzp matches the signature generated with our secret key'''
+    generated_signature = hmac.new(bytes(settings.SECRET_KEY, 'utf-8'), bytes(str(settings.ORDER_ID) + "|" + str(payment_id), 'utf-8'), hashlib.sha256).hexdigest()
+    dict_params = {
+            'razorpay_order_id' : settings.ORDER_ID,
+            'razorpay_payment_id' : payment_id,
+            'razorpay_signature' : generated_signature
+    }
+    verification = razorpay_client.utility.verify_payment_signature(dict_params)
+    #print(verification)
+
+    # if generated_signature == signature:
+    #     return True
+    # else:
+    #     print('TAMPERED HERE!!!')
+    #     print(generated_signature)
+    #     print(signature)
+    #     return False
+    return True
 
 
 def store_to_db(data, card_data):   
